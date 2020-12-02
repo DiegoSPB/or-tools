@@ -5,7 +5,7 @@ module ORTools
     DISTANCE_SCALE = 1000
     DEGREES_TO_RADIANS = Math::PI / 180
 
-    def initialize(locations)
+    def initialize(locations: locations, round_trip: true)
       raise ArgumentError, "Locations must have latitude and longitude" unless locations.all? { |l| l[:latitude] && l[:longitude] }
       raise ArgumentError, "Latitude must be between -90 and 90" unless locations.all? { |l| l[:latitude] >= -90 && l[:latitude] <= 90 }
       raise ArgumentError, "Longitude must be between -180 and 180" unless locations.all? { |l| l[:longitude] >= -180 && l[:longitude] <= 180 }
@@ -19,7 +19,10 @@ module ORTools
           end
         end
 
-      manager = ORTools::RoutingIndexManager.new(locations.size, 1, 0)
+      num_vehicles = 1
+      starts = [0]
+      ends = [round_trip ? 0 : locations.size - 1]
+      manager = ORTools::RoutingIndexManager.new(locations.size, num_vehicles, starts, ends)
       routing = ORTools::RoutingModel.new(manager)
 
       distance_callback = lambda do |from_index, to_index|
